@@ -15,8 +15,17 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::borrow::Cow;
-    use std::collections::HashMap;
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "std")] {
+            use alloc::borrow::Cow;
+            use std::collections::HashMap;
+        } else {
+            use alloc::borrow::Cow;
+            use hashbrown::HashMap;
+            use alloc::string::String;
+            use alloc::string::ToString;
+        }
+    }
 
     use super::*;
 

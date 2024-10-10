@@ -36,9 +36,11 @@ impl Default for CrateName {
 
 pub fn quote_message(message: Option<String>) -> proc_macro2::TokenStream {
     if let Some(m) = message {
-        quote!(
-            err.message = Some(::std::borrow::Cow::from(#m));
-        )
+        if cfg!(feature = "std") {
+            quote!(err.message = Some(::std::borrow::Cow::from(#m));)
+        } else {
+            quote!(err.message = Some(::alloc::borrow::Cow::from(#m));)
+        }
     } else {
         quote!()
     }

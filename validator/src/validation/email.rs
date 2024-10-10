@@ -1,7 +1,16 @@
-use idna::domain_to_ascii;
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+        use alloc::borrow::Cow;
+        use idna::domain_to_ascii;
+    } else {
+        use alloc::borrow::Cow;
+        use alloc::vec::Vec;
+        use alloc::string::String;
+    }
+}
+
 use once_cell::sync::Lazy;
 use regex::Regex;
-use std::borrow::Cow;
 
 use crate::ValidateIp;
 
@@ -68,11 +77,17 @@ pub trait ValidateEmail {
         }
 
         if !validate_domain_part(domain_part) {
-            // Still the possibility of an [IDN](https://en.wikipedia.org/wiki/Internationalized_domain_name)
-            return match domain_to_ascii(domain_part) {
-                Ok(d) => validate_domain_part(&d),
-                Err(_) => false,
-            };
+            cfg_if::cfg_if! {
+                if #[cfg(feature = "std")] {
+                    // Still the possibility of an [IDN](https://en.wikipedia.org/wiki/Internationalized_domain_name)
+                    return match domain_to_ascii(domain_part) {
+                        Ok(d) => validate_domain_part(&d),
+                        Err(_) => false,
+                    };
+                } else {
+                    return false;
+                }
+            }
         }
 
         true
@@ -123,7 +138,14 @@ impl ValidateEmail for Cow<'_, str> {
 
 #[cfg(test)]
 mod tests {
-    use std::borrow::Cow;
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "std")] {
+            use alloc::borrow::Cow;
+        } else {
+            use alloc::borrow::Cow;
+            use alloc::string::String;
+        }
+    }
 
     use crate::ValidateEmail;
 

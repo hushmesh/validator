@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use alloc::borrow::Cow;
 
 #[cfg(feature = "card")]
 use card_validate::Validate as CardValidate;
@@ -22,7 +22,14 @@ impl<T: AsRef<str>> ValidateCreditCard for T {
 #[cfg(feature = "card")]
 mod tests {
     use super::ValidateCreditCard;
-    use std::borrow::Cow;
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "std")] {
+            use std::borrow::Cow;
+        } else {
+            use alloc::borrow::Cow;
+            use alloc::string::String;
+        }
+    }
 
     #[test]
     fn test_credit_card() {

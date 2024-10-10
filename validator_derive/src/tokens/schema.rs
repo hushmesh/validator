@@ -20,17 +20,19 @@ pub fn schema_tokens(schema: Schema) -> proc_macro2::TokenStream {
     let message = quote_message(schema.message);
 
     let code = if let Some(c) = schema.code {
-        quote!(
-            err.code = ::std::borrow::Cow::from(#c);
-        )
+        if cfg!(feature = "std") {
+            quote!(err.code = ::std::borrow::Cow::from(#c);)
+        } else {
+            quote!(err.code = ::alloc::borrow::Cow::from(#c);)
+        }
     } else {
         quote!()
     };
 
     let fn_call = quote! {
         match #fn_call(#args) {
-            ::std::result::Result::Ok(()) => {}
-            ::std::result::Result::Err(mut err) => {
+            ::core::result::Result::Ok(()) => {}
+            ::core::result::Result::Err(mut err) => {
                 #code
                 #message
                 errors.add("__all__", err);

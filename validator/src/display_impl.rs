@@ -1,4 +1,11 @@
-use std::fmt::{self, Write};
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+        use std::fmt::{self, Write};
+    } else {
+        use core::fmt::{self, Write};
+        use alloc::string::String;
+    }
+}
 
 use crate::{ValidationError, ValidationErrors, ValidationErrorsKind};
 

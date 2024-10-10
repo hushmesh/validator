@@ -1,5 +1,8 @@
+cfg_if::cfg_if! {
+    if #[cfg(feature = "url_support")] {
+
+use alloc::borrow::Cow;
 use std::{
-    borrow::Cow,
     cell::{Ref, RefMut},
     rc::Rc,
     sync::Arc,
@@ -74,7 +77,7 @@ impl ValidateUrl for Cow<'_, str> {
 
 #[cfg(test)]
 mod tests {
-    use std::borrow::Cow;
+    use alloc::borrow::Cow;
 
     use super::ValidateUrl;
 
@@ -102,5 +105,7 @@ mod tests {
         assert!(!test.validate_url());
         let test: Cow<'static, str> = String::from("http").into();
         assert!(!test.validate_url());
+    }
+}
     }
 }

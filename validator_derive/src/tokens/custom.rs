@@ -23,20 +23,29 @@ pub fn custom_tokens(
     let message = quote_message(custom.message);
 
     let code = if let Some(c) = custom.code {
-        quote!(
-            err.code = ::std::borrow::Cow::from(#c);
-        )
+        if cfg!(feature = "std") {
+            quote!(err.code = ::std::borrow::Cow::from(#c);)
+        } else {
+            quote!(err.code = ::alloc::borrow::Cow::from(#c);)
+        }
     } else {
         quote!()
     };
 
+    let cow_type = if cfg!(feature = "std") {
+        quote!(::std::borrow::Cow::from("value"))
+    } else {
+        quote!(::alloc::borrow::Cow::from("value"))
+    };
     quote! {
         match #fn_call(#args) {
-            ::std::result::Result::Ok(()) => {}
-            ::std::result::Result::Err(mut err) => {
+            ::core::result::Result::Ok(()) => {}
+            ::core::result::Result::Err(mut err) => {
                 #code
                 #message
-                err.add_param(::std::borrow::Cow::from("value"), &#field_name);
+                err.add_param(
+                    #cow_type,
+                    &#field_name);
                 errors.add(#field_name_str, err);
             }
         }

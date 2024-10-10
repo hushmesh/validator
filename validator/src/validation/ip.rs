@@ -1,5 +1,13 @@
-use std::net::IpAddr;
-use std::str::FromStr;
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+        use std::net::IpAddr;
+        use std::str::FromStr;
+    } else {
+        use core::net::IpAddr;
+        use core::str::FromStr;
+        use alloc::string::ToString;
+    }
+}
 
 pub trait ValidateIp {
     /// Validates whether the given string is an IP V4
@@ -30,7 +38,14 @@ where
 #[cfg(test)]
 mod tests {
     use super::ValidateIp;
-    use std::borrow::Cow;
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "std")] {
+            use std::borrow::Cow;
+        } else {
+            use alloc::borrow::Cow;
+            use alloc::string::String;
+        }
+    }
 
     #[test]
     fn test_validate_ip() {

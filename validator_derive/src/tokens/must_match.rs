@@ -10,18 +10,34 @@ pub fn must_match_tokens(
     field_name_str: &str,
 ) -> proc_macro2::TokenStream {
     let o = must_match.other;
-    let (other, other_err) =
-        (quote!(self.#o), quote!(err.add_param(::std::borrow::Cow::from("other"), &self.#o);));
+    let cow_type = if cfg!(feature = "std") {
+        quote!(::std::borrow::Cow::from("other"))
+    } else {
+        quote!(::alloc::borrow::Cow::from("other"))
+    };
+    let (other, other_err) = (
+        quote!(self.#o),
+        quote!(err.add_param( 
+            #cow_type,
+         &self.#o);),
+    );
 
     let message = quote_message(must_match.message);
     let code = quote_code(crate_name, must_match.code, "must_match");
 
+    let cow_type = if cfg!(feature = "std") {
+        quote!(::std::borrow::Cow::from("value"))
+    } else {
+        quote!(::alloc::borrow::Cow::from("value"))
+    };
     quote! {
         if !#crate_name::validate_must_match(&#field_name, &#other) {
             #code
             #message
             #other_err
-            err.add_param(::std::borrow::Cow::from("value"), &#field_name);
+            err.add_param(
+                 #cow_type,
+                 &#field_name);
             errors.add(#field_name_str, err);
         }
     }

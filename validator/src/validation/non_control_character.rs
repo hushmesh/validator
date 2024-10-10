@@ -1,6 +1,12 @@
 #[cfg(feature = "unic")]
 use unic_ucd_common::control;
 
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+    } else {
+       use alloc::boxed::Box;
+    }
+}
 pub trait ValidateNonControlCharacter {
     fn validate_non_control_character(&self) -> bool {
         self.as_non_control_character_iterator().all(|code| !control::is_control(code))
@@ -19,7 +25,14 @@ impl<T: AsRef<str>> ValidateNonControlCharacter for T {
 #[cfg(feature = "unic")]
 mod tests {
     use super::ValidateNonControlCharacter;
-    use std::borrow::Cow;
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "std")] {
+           use std::borrow::Cow;
+        } else {
+           use alloc::borrow::Cow;
+           use alloc::string::String;
+        }
+    }
 
     #[test]
     fn test_non_control_character() {

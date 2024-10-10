@@ -1,10 +1,28 @@
-use std::{
-    borrow::Cow,
-    cell::{Ref, RefMut},
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
-    rc::Rc,
-    sync::Arc,
-};
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+        use std::borrow::Cow;
+        use std::{
+            cell::{Ref, RefMut},
+            collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
+            rc::Rc,
+            sync::Arc,
+        };
+    } else {
+        use alloc::borrow::Cow;
+        use core::cell::{Ref, RefMut};
+        use alloc::collections:: {
+            BTreeMap, BTreeSet, VecDeque
+        };
+        use alloc::sync::Arc;
+        use alloc::rc::Rc;
+        use alloc::boxed::Box;
+        use alloc::string::String;
+        use alloc::vec::Vec;
+        use hashbrown::HashSet;
+        use hashbrown::HashMap;
+        use alloc::borrow::ToOwned;
+    }
+}
 
 #[cfg(feature = "indexmap")]
 use indexmap::{IndexMap, IndexSet};
@@ -133,7 +151,14 @@ impl<T, const N: usize> ValidateLength<u64> for [T; N] {
 
 #[cfg(test)]
 mod tests {
-    use std::borrow::Cow;
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "std")] {
+            use std::borrow::Cow;
+        } else {
+            use alloc::borrow::Cow;
+            use alloc::string::String;
+        }
+    }
 
     use super::ValidateLength;
 

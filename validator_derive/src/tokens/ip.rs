@@ -35,11 +35,18 @@ pub fn ip_tokens(
         _ => quote!(validate_ip()),
     };
 
+    let cow_type = if cfg!(feature = "std") {
+        quote!(::std::borrow::Cow::from("value"))
+    } else {
+        quote!(::alloc::borrow::Cow::from("value"))
+    };
     quote! {
         if !#field_name.#version {
             #code
             #message
-            err.add_param(::std::borrow::Cow::from("value"), &#field_name);
+            err.add_param(
+                 #cow_type,
+                 &#field_name);
             errors.add(#field_name_str, err);
         }
     }

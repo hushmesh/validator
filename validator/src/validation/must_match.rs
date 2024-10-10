@@ -7,7 +7,15 @@ pub fn validate_must_match<T: Eq>(a: T, b: T) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use std::borrow::Cow;
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "std")] {
+            use std::borrow::Cow;
+        } else {
+            use alloc::borrow::Cow;
+            use alloc::string::String;
+            use alloc::string::ToString;
+        }
+    }
 
     use super::validate_must_match;
 

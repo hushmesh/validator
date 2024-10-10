@@ -1,8 +1,21 @@
-use std::borrow::Cow;
-use std::collections::{hash_map::Entry::Vacant, BTreeMap, HashMap};
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+        use std::borrow::Cow;
+        use std::collections::{hash_map::Entry::Vacant, HashMap};
+        use std::collections::BTreeMap;
+        use std::error::Error;
+    } else {
+        use alloc::borrow::Cow;
+        use alloc::collections::BTreeMap;
+        use hashbrown::HashMap;
+        use hashbrown::hash_map::Entry::Vacant;
+        use alloc::boxed::Box;
+        use alloc::vec::Vec;
+    }
+}
 
-use serde::ser::Serialize;
-use serde_derive::{Deserialize, Serialize};
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::{to_value, Value};
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -29,11 +42,12 @@ impl ValidationError {
     }
 }
 
-impl std::error::Error for ValidationError {
+#[cfg(feature = "std")]
+impl Error for ValidationError {
     fn description(&self) -> &str {
         &self.code
     }
-    fn cause(&self) -> Option<&dyn std::error::Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         None
     }
 }
@@ -196,11 +210,12 @@ impl ValidationErrors {
     }
 }
 
-impl std::error::Error for ValidationErrors {
+#[cfg(feature = "std")]
+impl Error for ValidationErrors {
     fn description(&self) -> &str {
         "Validation failed"
     }
-    fn cause(&self) -> Option<&dyn std::error::Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         None
     }
 }

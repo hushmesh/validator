@@ -60,6 +60,11 @@
 //! validator = { version = "0.16", features = ["derive"] }
 //! ```
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
+#[macro_use]
+extern crate alloc;
+
 mod display_impl;
 mod traits;
 mod types;
@@ -76,8 +81,10 @@ pub use validation::must_match::validate_must_match;
 #[cfg(feature = "unic")]
 pub use validation::non_control_character::ValidateNonControlCharacter;
 pub use validation::range::ValidateRange;
-pub use validation::regex::{ValidateRegex, AsRegex};
+#[cfg(feature = "regex_support")]
+pub use validation::regex::{AsRegex, ValidateRegex};
 pub use validation::required::ValidateRequired;
+#[cfg(feature = "url_support")]
 pub use validation::urls::ValidateUrl;
 
 pub use traits::{Validate, ValidateArgs};
@@ -85,3 +92,6 @@ pub use types::{ValidationError, ValidationErrors, ValidationErrorsKind};
 
 #[cfg(feature = "derive")]
 pub use validator_derive::Validate;
+
+#[cfg(feature = "derive_nostd")]
+pub use validator_derive_nostd::Validate;

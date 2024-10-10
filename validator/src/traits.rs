@@ -1,6 +1,15 @@
 use crate::types::{ValidationErrors, ValidationErrorsKind};
-use std::collections::btree_map::BTreeMap;
-use std::collections::HashMap;
+
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+        use std::collections::btree_map::BTreeMap;
+        use std::collections::HashMap;
+    } else {
+        use alloc::collections::BTreeMap;
+        use hashbrown::HashMap;
+        use alloc::boxed::Box;
+    }
+}
 
 /// This is the original trait that was implemented by deriving `Validate`. It will still be
 /// implemented for struct validations that don't take custom arguments. The call is being
@@ -31,10 +40,7 @@ macro_rules! impl_validate_list {
                     Ok(())
                 } else {
                     let err_kind = ValidationErrorsKind::List(vec_err);
-                    let errors = ValidationErrors(std::collections::HashMap::from([(
-                        "_tmp_validator",
-                        err_kind,
-                    )]));
+                    let errors = ValidationErrors(HashMap::from([("_tmp_validator", err_kind)]));
                     Err(errors)
                 }
             }
@@ -42,12 +48,24 @@ macro_rules! impl_validate_list {
     };
 }
 
-impl_validate_list!(std::collections::HashSet<T>);
-impl_validate_list!(std::collections::BTreeSet<T>);
-impl_validate_list!(std::collections::BinaryHeap<T>);
-impl_validate_list!(std::collections::LinkedList<T>);
-impl_validate_list!(std::collections::VecDeque<T>);
-impl_validate_list!(std::vec::Vec<T>);
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+        impl_validate_list!(std::collections::HashSet<T>);
+        impl_validate_list!(std::collections::BTreeSet<T>);
+        impl_validate_list!(std::collections::BinaryHeap<T>);
+        impl_validate_list!(std::collections::LinkedList<T>);
+        impl_validate_list!(std::collections::VecDeque<T>);
+        impl_validate_list!(std::vec::Vec<T>);
+    } else {
+        impl_validate_list!(hashbrown::HashSet<T>);
+        impl_validate_list!(alloc::collections::BTreeSet<T>);
+        impl_validate_list!(alloc::collections::BinaryHeap<T>);
+        impl_validate_list!(alloc::collections::LinkedList<T>);
+        impl_validate_list!(alloc::collections::VecDeque<T>);
+        impl_validate_list!(alloc::vec::Vec<T>);
+    }
+}
+
 impl_validate_list!([T]);
 
 impl<T: Validate, const N: usize> Validate for [T; N] {
@@ -64,8 +82,7 @@ impl<T: Validate, const N: usize> Validate for [T; N] {
             Ok(())
         } else {
             let err_kind = ValidationErrorsKind::List(vec_err);
-            let errors =
-                ValidationErrors(std::collections::HashMap::from([("_tmp_validator", err_kind)]));
+            let errors = ValidationErrors(HashMap::from([("_tmp_validator", err_kind)]));
             Err(errors)
         }
     }

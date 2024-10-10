@@ -1,6 +1,16 @@
-use std::borrow::Cow;
-use std::collections::HashMap;
-use std::hash::BuildHasher;
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+        use std::borrow::Cow;
+        use std::collections::HashMap;
+        use std::hash::BuildHasher;
+    } else {
+        use alloc::borrow::Cow;
+        use hashbrown::HashMap;
+        use core::hash::BuildHasher;
+        use alloc::string::String;
+        use alloc::borrow::ToOwned;
+    }
+}
 
 pub trait ValidateContains {
     fn validate_contains(&self, needle: &str) -> bool;
@@ -59,6 +69,9 @@ impl<S, H: BuildHasher> ValidateContains for HashMap<String, S, H> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(not(feature = "std"))]
+    use alloc::string::ToString;
 
     #[test]
     fn test_validate_contains_string() {

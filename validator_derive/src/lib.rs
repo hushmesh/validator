@@ -395,7 +395,7 @@ pub fn derive_validation(input: proc_macro::TokenStream) -> proc_macro::TokenStr
     let argless_validation = if validation_data.context.is_none() {
         quote! {
             impl #imp #crate_name::Validate for #ident #ty #whr {
-                fn validate(&self) -> ::std::result::Result<(), #crate_name::ValidationErrors> {
+                fn validate(&self) -> ::core::result::Result<(), #crate_name::ValidationErrors> {
                     use #crate_name::ValidateArgs;
                     self.validate_with_args(())
                 }
@@ -412,7 +412,7 @@ pub fn derive_validation(input: proc_macro::TokenStream) -> proc_macro::TokenStr
             type Args = #custom_context;
 
             fn validate_with_args(&self, args: Self::Args)
-            -> ::std::result::Result<(), #crate_name::ValidationErrors>
+            -> ::core::result::Result<(), #crate_name::ValidationErrors>
              {
                 #use_statements
 
@@ -423,9 +423,9 @@ pub fn derive_validation(input: proc_macro::TokenStream) -> proc_macro::TokenStr
                 #schema
 
                 if errors.is_empty() {
-                    ::std::result::Result::Ok(())
+                    ::core::result::Result::Ok(())
                 } else {
-                    ::std::result::Result::Err(errors)
+                    ::core::result::Result::Err(errors)
                 }
             }
         }
